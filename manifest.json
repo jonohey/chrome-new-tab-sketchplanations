@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Sketchplanations New Tab",
+  "version": "0.1.0",
+  "description": "Shows a new Sketchplanation each day on the new tab page.",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "icons": {
+    "16": "images/icon-16.png",
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://sketchplanations.com/*"]
+}

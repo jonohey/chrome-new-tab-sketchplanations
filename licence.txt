@@ -1,0 +1,5 @@
+Copyright © 2025 Jono Hey
+All rights reserved.
+This code is not licensed for reuse, redistribution, or commercial use without written permission.
+
+Suggestions welcomed at jono.hey@gmail.com or open an issue on GitHub

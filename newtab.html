@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Sketchplanations New Tab</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="icon"
+      href="https://sketchplanations.com/favicon-32x32.png"
+      sizes="32x32"
+    />
+  </head>
+  <body>
+    <!-- Bottom Menu -->
+    <div class="bottom-menu">
+      <!-- Desktop Links -->
+      <div class="bottom-links-desktop">
+        <a
+          href="https://sketchplanations.com/browser-extension"
+          target="_blank"
+          rel="noopener"
+          class="bottom-link"
+          title="About this extension"
+        >
+          <svg
+            class="link-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+          </svg>
+          About
+        </a>
+        <a
+          href="https://forms.gle/XAytsd4DLtc4NusD6"
+          target="_blank"
+          rel="noopener"
+          class="bottom-link"
+          title="Send feedback"
+        >
+          <svg
+            class="link-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+            />
+            <path d="M13 8H7" />
+            <path d="M17 12H7" />
+          </svg>
+          Feedback
+        </a>
+        <a
+          href="https://sketchplanations.com/subscribe"
+          target="_blank"
+          rel="noopener"
+          class="bottom-link"
+          title="Subscribe to and support Sketchplanations"
+        >
+          <svg
+            class="link-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"
+            />
+          </svg>
+          Subscribe
+        </a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button id="bottomMenuBtn" class="bottom-menu-btn" title="Menu">
+        <svg
+          class="menu-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <!-- Mobile Menu Dropdown -->
+      <div id="bottomMenu" class="bottom-menu-dropdown hidden">
+        <a
+          href="https://sketchplanations.com/browser-extension"
+          target="_blank"
+          rel="noopener"
+          class="bottom-menu-link"
+          title="About this extension"
+        >
+          <svg
+            class="link-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+          </svg>
+          About
+        </a>
+        <a
+          href="https://forms.gle/XAytsd4DLtc4NusD6"
+          target="_blank"
+          rel="noopener"
+          class="bottom-menu-link"
+          title="Send feedback"
+        >
+          <svg
+            class="link-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+            />
+            <path d="M13 8H7" />
+            <path d="M17 12H7" />
+          </svg>
+          Feedback
+        </a>
+        <a
+          href="https://sketchplanations.com/subscribe"
+          target="_blank"
+          rel="noopener"
+          class="bottom-menu-link"
+          title="Subscribe to and support Sketchplanations"
+        >
+          <svg
+            class="link-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"
+            />
+          </svg>
+          Subscribe
+        </a>
+      </div>
+    </div>
+    <!-- Theme Palette Menu -->
+    <div class="theme-palette">
+      <button
+        id="paletteBtn"
+        class="palette-btn"
+        title="Theme options"
+        aria-label="Theme options"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+          <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+          <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+          <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+          <path
+            d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"
+          />
+        </svg>
+      </button>
+      <div class="theme-menu hidden" id="themeMenu">
+        <button class="theme-option" data-theme="light">
+          <span>Light</span>
+        </button>
+        <button class="theme-option" data-theme="dark">
+          <span>Dark</span>
+        </button>
+        <button class="theme-option" data-theme="gradient">
+          <span>Gradient</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Frequency Control Menu -->
+    <div class="frequency-palette">
+      <button
+        id="frequencyBtn"
+        class="frequency-btn"
+        title="Sketch frequency options"
+        aria-label="Sketch frequency options"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12,6 12,12 16,14" />
+        </svg>
+      </button>
+      <div class="frequency-menu hidden" id="frequencyMenu">
+        <button class="frequency-option" data-frequency="daily">
+          <span>Daily</span>
+        </button>
+        <button class="frequency-option" data-frequency="hourly">
+          <span>Hourly</span>
+        </button>
+        <button class="frequency-option" data-frequency="each-tab">
+          <span>Each tab</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Refresh Icon -->
+    <div class="refresh-palette">
+      <div
+        id="refreshBtn"
+        class="refresh-icon"
+        title="Refresh sketch"
+        aria-label="Refresh sketch"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M23 4v6h-6" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+      </div>
+    </div>
+
+    <main id="app">
+      <div class="loading" style="text-align: center; opacity: 0.7">
+        Digging up a sketch for you...
+      </div>
+    </main>
+
+    <!-- Logo -->
+    <div class="logo-container" id="logoContainer">
+      <a href="https://sketchplanations.com" target="_blank" rel="noopener">
+        <img
+          id="logoImg"
+          src="images/sketchplanations-logo-black-transparent.png"
+          alt="Sketchplanations"
+          class="logo"
+        />
+      </a>
+    </div>
+
+    <script type="module" src="newtab.js"></script>
+  </body>
+</html>
