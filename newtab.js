@@ -158,8 +158,8 @@ function render(sketchData) {
   const url = sketchData.url;
   const desc = firstSentence(sketchData.description || "");
   const printsBtn = sketchData.prints
-    ? `<a class="btn" href="${sketchData.prints}" target="_blank" rel="noopener">
-        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    ? `<a class="btn" href="${sketchData.prints}" target="_blank" rel="noopener" tabindex="3">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
           <line x1="3" y1="6" x2="21" y2="6"/>
           <path d="M16 10a4 4 0 0 1-8 0"/>
@@ -169,8 +169,8 @@ function render(sketchData) {
     : "";
 
   const podcastBtn = sketchData.podcastUrl
-    ? `<a class="btn" href="${sketchData.podcastUrl}" target="_blank" rel="noopener">
-        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    ? `<a class="btn" href="${sketchData.podcastUrl}" target="_blank" rel="noopener" tabindex="4">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>
         </svg>
         Listen
@@ -178,6 +178,7 @@ function render(sketchData) {
     : "";
 
   app.innerHTML = `
+    <h1 class="sr-only">${sketchData.title}</h1>
     <div class="museum-layout">
       <div class="artwork-section">
         ${
@@ -192,14 +193,14 @@ function render(sketchData) {
       </div>
       <div class="info-card">
         ${desc ? `<p class="desc">${desc}</p>` : ``}
-        <a href="${url}" target="_blank" rel="noopener" class="read-more">Read more →</a>
+        <a href="${url}" target="_blank" rel="noopener" class="read-more" tabindex="1">Read more →</a>
         <div class="actions">
           <div class="relative">
             <div id="copiedNotification" class="copied-notification">
               Link copied!
             </div>
-            <button id="copyBtn" title="Copy a link to this sketch">
-              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button id="copyBtn" title="Copy a link to this sketch" tabindex="2">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
                 <polyline points="16,6 12,2 8,6"/>
                 <line x1="12" y1="2" x2="12" y2="15"/>
@@ -221,7 +222,8 @@ function render(sketchData) {
     else img.addEventListener("load", () => img.classList.add("is-loaded"));
   }
 
-  document.getElementById("refreshBtn").onclick = async () => {
+  const refreshBtn = document.getElementById("refreshBtn");
+  refreshBtn.onclick = async () => {
     try {
       loading("Getting a new sketch…");
       const sketchData = await fetchNewSketch();
@@ -231,6 +233,21 @@ function render(sketchData) {
       showError(err);
     }
   };
+
+  // Add keyboard support for refresh button (div element)
+  refreshBtn.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      try {
+        loading("Getting a new sketch…");
+        const sketchData = await fetchNewSketch();
+        await rememberSketch(sketchData.uid);
+        await renderOrRedirect(sketchData);
+      } catch (err) {
+        showError(err);
+      }
+    }
+  });
 
   document.getElementById("copyBtn").onclick = async () => {
     await navigator.clipboard.writeText(url);
@@ -351,6 +368,20 @@ async function initTheme() {
   const theme = saved || (prefersDark ? "dark" : "light");
   applyTheme(theme);
   updateThemeMenu(theme);
+
+  // Listen for OS theme changes (only if no saved preference)
+  if (!saved && window.matchMedia) {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", async (e) => {
+      // Only update if user hasn't manually set a preference
+      const currentSaved = await storage.get("theme", null);
+      if (!currentSaved) {
+        const newTheme = e.matches ? "dark" : "light";
+        applyTheme(newTheme);
+        updateThemeMenu(newTheme);
+      }
+    });
+  }
 
   // Initialize frequency menu
   const frequency = await getFrequency();
