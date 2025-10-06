@@ -88,6 +88,52 @@ a {
   top: 6px;
 }
 
+/* Version Toggle */
+.version-toggle {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.version-link {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.version-link:hover {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+
+.version-link.active {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+
+.version-separator {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+body.theme-dark .version-link:hover,
+body.theme-gradient .version-link:hover {
+  background: var(--bg-hover-light);
+}
+
+body.theme-dark .version-link.active,
+body.theme-gradient .version-link.active {
+  background: var(--bg-hover-light);
+}
+
 /* Focus Indicators */
 *:focus {
   outline: 2px solid var(--fg);
@@ -1133,6 +1179,85 @@ body.theme-gradient.gradient-5 {
   background: linear-gradient(160deg, #cfd9df 0%, #a6c0fe 40%, #fbc2eb 100%);
 }
 
+/* V2 Layout - Simplified and sketch-focused */
+.v2-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  padding-top: 80px; /* Space for version toggle */
+}
+
+.v2-sketch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 90vw;
+}
+
+.v2-image-link {
+  display: block;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.v2-image-link:hover {
+  transform: scale(1.02);
+}
+
+.v2-sketch-img {
+  display: block;
+  max-width: min(70vw, 600px);
+  max-height: 70vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: opacity 0.25s ease;
+  opacity: 0;
+}
+
+.v2-sketch-img.is-loaded {
+  opacity: 1;
+}
+
+.extra-links {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.small-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-size: 13px;
+}
+
+.small-link:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+/* Dark mode styles for V2 */
+body.theme-dark .extra-links {
+  color: var(--text-secondary);
+}
+
+body.theme-dark .small-link {
+  color: var(--text-secondary);
+}
+
+body.theme-dark .small-link:hover {
+  color: var(--text-primary);
+}
+
 /* Mobile responsive layout for top controls */
 @media (max-width: 768px) {
   /* Horizontal layout for refresh, frequency, and theme icons (left to right) */
@@ -1155,5 +1280,21 @@ body.theme-gradient.gradient-5 {
       108px,
       calc(12px + env(safe-area-inset-right) + 40px + 8px + 40px + 8px)
     ) !important;
+  }
+
+  /* V2 mobile adjustments */
+  .v2-layout {
+    padding-top: 100px; /* More space on mobile */
+  }
+
+  .v2-sketch-img {
+    max-width: 85vw;
+    max-height: 65vh;
+  }
+
+  .extra-links {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
   }
 }
