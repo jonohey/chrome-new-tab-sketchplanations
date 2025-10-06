@@ -2,6 +2,11 @@
 const API = "https://sketchplanations.com/api/extension/new-tab";
 //const API = "http://localhost:3000/api/extension/new-tab";
 
+// Version control constants
+const VERSION_V1 = "v1";
+const VERSION_V2 = "v2";
+const DEFAULT_VERSION = VERSION_V1;
+
 // Frequency control constants
 const FREQUENCY_DAILY = "daily";
 const FREQUENCY_HOURLY = "hourly";
@@ -71,6 +76,15 @@ async function getLastFetchTime() {
 
 async function setLastFetchTime(time) {
   await storage.set("lastFetchTime", time);
+}
+
+// Version control functions
+async function getVersion() {
+  return await storage.get("version", DEFAULT_VERSION);
+}
+
+async function setVersion(version) {
+  await storage.set("version", version);
 }
 
 async function fetchSketchData() {
@@ -153,7 +167,17 @@ function firstSentence(str) {
   return s;
 }
 
-function render(sketchData) {
+async function render(sketchData) {
+  const version = await getVersion();
+  
+  if (version === VERSION_V2) {
+    renderV2(sketchData);
+  } else {
+    renderV1(sketchData);
+  }
+}
+
+function renderV1(sketchData) {
   const app = document.getElementById("app");
   const url = sketchData.url;
   const desc = firstSentence(sketchData.description || "");
@@ -214,7 +238,49 @@ function render(sketchData) {
       </div>
     </div>
   `;
+  
+  setupV1Interactions(sketchData, url);
+}
 
+function renderV2(sketchData) {
+  const app = document.getElementById("app");
+  const url = sketchData.url;
+  
+  // Create small text links for prints and podcast if available
+  const extraLinks = [];
+  if (sketchData.prints) {
+    extraLinks.push(`<a href="${sketchData.prints}" target="_blank" rel="noopener" class="small-link">Buy prints</a>`);
+  }
+  if (sketchData.podcastUrl) {
+    extraLinks.push(`<a href="${sketchData.podcastUrl}" target="_blank" rel="noopener" class="small-link">Listen to podcast</a>`);
+  }
+  
+  const extraLinksHtml = extraLinks.length > 0 
+    ? `<div class="extra-links">${extraLinks.join(' • ')}</div>` 
+    : '';
+
+  app.innerHTML = `
+    <h1 class="sr-only">${sketchData.title}</h1>
+    <div class="v2-layout">
+      <div class="v2-sketch-container">
+        ${
+          sketchData.image
+            ? `<a href="${url}" target="_blank" rel="noopener" class="v2-image-link">
+                <img class="v2-sketch-img" src="${sketchData.image}" alt="${
+                  sketchData.imageAlt || sketchData.title
+                }" loading="lazy">
+               </a>`
+            : ""
+        }
+        ${extraLinksHtml}
+      </div>
+    </div>
+  `;
+  
+  setupV2Interactions(sketchData, url);
+}
+
+function setupV1Interactions(sketchData, url) {
   // fade-in when image loads
   const img = document.querySelector(".sketch-img");
   if (img) {
@@ -277,6 +343,54 @@ function render(sketchData) {
         '.actions a[href][target="_blank"]:nth-child(2)'
       );
       if (p && p.textContent.trim().toLowerCase() === "prints") p.click();
+    }
+  };
+}
+
+function setupV2Interactions(sketchData, url) {
+  // fade-in when image loads
+  const img = document.querySelector(".v2-sketch-img");
+  if (img) {
+    if (img.complete) img.classList.add("is-loaded");
+    else img.addEventListener("load", () => img.classList.add("is-loaded"));
+  }
+
+  const refreshBtn = document.getElementById("refreshBtn");
+  refreshBtn.onclick = async () => {
+    try {
+      loading("Getting a new sketch…");
+      const sketchData = await fetchNewSketch();
+      await rememberSketch(sketchData.uid);
+      await renderOrRedirect(sketchData);
+    } catch (err) {
+      showError(err);
+    }
+  };
+
+  // Add keyboard support for refresh button (div element)
+  refreshBtn.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      try {
+        loading("Getting a new sketch…");
+        const sketchData = await fetchNewSketch();
+        await rememberSketch(sketchData.uid);
+        await renderOrRedirect(sketchData);
+      } catch (err) {
+        showError(err);
+      }
+    }
+  });
+
+  // Simplified keyboard shortcuts for V2 (no copy button)
+  window.onkeydown = (e) => {
+    const k = e.key.toLowerCase();
+    if (k === "n" || e.key === "ArrowRight") {
+      document.getElementById("refreshBtn").click();
+    } else if (k === "v") {
+      // Open the main sketch link
+      const a = document.querySelector(".v2-image-link");
+      if (a) a.click();
     }
   };
 }
@@ -361,51 +475,90 @@ async function renderOrRedirect(sketchData) {
 
 // ---- Theme toggle ----
 async function initTheme() {
-  const saved = await storage.get("theme", null);
-  const prefersDark =
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const theme = saved || (prefersDark ? "dark" : "light");
-  applyTheme(theme);
-  updateThemeMenu(theme);
-
-  // Listen for OS theme changes (only if no saved preference)
-  if (!saved && window.matchMedia) {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    mediaQuery.addEventListener("change", async (e) => {
-      // Only update if user hasn't manually set a preference
-      const currentSaved = await storage.get("theme", null);
-      if (!currentSaved) {
+  const version = await getVersion();
+  
+  if (version === VERSION_V2) {
+    // V2: Always respect system preferences
+    const prefersDark =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = prefersDark ? "dark" : "light";
+    applyTheme(theme);
+    
+    // Listen for OS theme changes in V2
+    if (window.matchMedia) {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      mediaQuery.addEventListener("change", (e) => {
         const newTheme = e.matches ? "dark" : "light";
         applyTheme(newTheme);
-        updateThemeMenu(newTheme);
-      }
-    });
+      });
+    }
+  } else {
+    // V1: Use saved theme or default to system preference
+    const saved = await storage.get("theme", null);
+    const prefersDark =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = saved || (prefersDark ? "dark" : "light");
+    applyTheme(theme);
+    updateThemeMenu(theme);
+
+    // Listen for OS theme changes (only if no saved preference)
+    if (!saved && window.matchMedia) {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      mediaQuery.addEventListener("change", async (e) => {
+        // Only update if user hasn't manually set a preference
+        const currentSaved = await storage.get("theme", null);
+        if (!currentSaved) {
+          const newTheme = e.matches ? "dark" : "light";
+          applyTheme(newTheme);
+          updateThemeMenu(newTheme);
+        }
+      });
+    }
   }
 
   // Initialize frequency menu
   const frequency = await getFrequency();
   updateFrequencyMenu(frequency);
 
-  // Setup palette menu
-  const paletteBtn = document.getElementById("paletteBtn");
-  const themeMenu = document.getElementById("themeMenu");
-  const themeOptions = document.querySelectorAll(".theme-option");
+  // Setup version toggle
+  await setupVersionToggle();
 
-  // Toggle menu on palette button click
-  paletteBtn.onclick = (e) => {
-    e.stopPropagation();
-    // Close frequency menu when opening theme menu
-    frequencyMenu.classList.add("hidden");
-    themeMenu.classList.toggle("hidden");
-  };
+  // Setup palette menu (only for V1)
+  if (version === VERSION_V1) {
+    const paletteBtn = document.getElementById("paletteBtn");
+    const themeMenu = document.getElementById("themeMenu");
+    const themeOptions = document.querySelectorAll(".theme-option");
 
-  // Close menu when clicking outside
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".theme-palette")) {
-      themeMenu.classList.add("hidden");
-    }
-  });
+    // Toggle menu on palette button click
+    paletteBtn.onclick = (e) => {
+      e.stopPropagation();
+      // Close frequency menu when opening theme menu
+      const frequencyMenu = document.getElementById("frequencyMenu");
+      frequencyMenu.classList.add("hidden");
+      themeMenu.classList.toggle("hidden");
+    };
+
+    // Close menu when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".theme-palette")) {
+        themeMenu.classList.add("hidden");
+      }
+    });
+
+    // Handle theme option clicks
+    themeOptions.forEach((option) => {
+      option.onclick = async (e) => {
+        e.preventDefault();
+        const selectedTheme = option.dataset.theme;
+        applyTheme(selectedTheme);
+        await storage.set("theme", selectedTheme);
+        updateThemeMenu(selectedTheme);
+        themeMenu.classList.add("hidden");
+      };
+    });
+  }
 
   // Setup frequency menu
   const frequencyBtn = document.getElementById("frequencyBtn");
@@ -415,8 +568,11 @@ async function initTheme() {
   // Toggle frequency menu on button click
   frequencyBtn.onclick = (e) => {
     e.stopPropagation();
-    // Close theme menu when opening frequency menu
-    themeMenu.classList.add("hidden");
+    // Close theme menu when opening frequency menu (only if V1)
+    if (version === VERSION_V1) {
+      const themeMenu = document.getElementById("themeMenu");
+      themeMenu.classList.add("hidden");
+    }
     frequencyMenu.classList.toggle("hidden");
   };
 
@@ -435,7 +591,10 @@ async function initTheme() {
   bottomMenuBtn.onclick = (e) => {
     e.stopPropagation();
     // Close other menus when opening bottom menu
-    themeMenu.classList.add("hidden");
+    if (version === VERSION_V1) {
+      const themeMenu = document.getElementById("themeMenu");
+      themeMenu.classList.add("hidden");
+    }
     frequencyMenu.classList.add("hidden");
     bottomMenu.classList.toggle("hidden");
   };
@@ -445,18 +604,6 @@ async function initTheme() {
     if (!e.target.closest(".bottom-menu")) {
       bottomMenu.classList.add("hidden");
     }
-  });
-
-  // Handle theme option clicks
-  themeOptions.forEach((option) => {
-    option.onclick = async (e) => {
-      e.preventDefault();
-      const selectedTheme = option.dataset.theme;
-      applyTheme(selectedTheme);
-      await storage.set("theme", selectedTheme);
-      updateThemeMenu(selectedTheme);
-      themeMenu.classList.add("hidden");
-    };
   });
 
   // Handle frequency option clicks
@@ -469,6 +616,49 @@ async function initTheme() {
       frequencyMenu.classList.add("hidden");
     };
   });
+
+  // Update UI visibility based on version
+  updateUIForVersion(version);
+}
+
+async function setupVersionToggle() {
+  const version = await getVersion();
+  
+  const v1Link = document.getElementById("v1Link");
+  const v2Link = document.getElementById("v2Link");
+  
+  // Update active states
+  v1Link.classList.toggle("active", version === VERSION_V1);
+  v2Link.classList.toggle("active", version === VERSION_V2);
+  
+  // Add click handlers
+  v1Link.onclick = async (e) => {
+    e.preventDefault();
+    await setVersion(VERSION_V1);
+    location.reload(); // Reload to apply changes
+  };
+  
+  v2Link.onclick = async (e) => {
+    e.preventDefault();
+    await setVersion(VERSION_V2);
+    location.reload(); // Reload to apply changes
+  };
+}
+
+function updateUIForVersion(version) {
+  const themeControls = document.querySelector(".theme-palette");
+  
+  if (version === VERSION_V2) {
+    // Hide theme controls in V2
+    if (themeControls) {
+      themeControls.style.display = "none";
+    }
+  } else {
+    // Show theme controls in V1
+    if (themeControls) {
+      themeControls.style.display = "block";
+    }
+  }
 }
 
 function updateThemeMenu(activeTheme) {
