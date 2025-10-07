@@ -88,6 +88,53 @@ a {
   top: 6px;
 }
 
+/* Version Toggle */
+.version-toggle {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.version-link {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.version-link:hover {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+
+.version-link.active {
+  color: var(--fg);
+  background: var(--bg-hover);
+}
+
+.version-separator {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+body.theme-dark .version-link:hover,
+body.theme-gradient .version-link:hover {
+  background: var(--bg-hover-light);
+}
+
+body.theme-dark .version-link.active,
+body.theme-gradient .version-link.active {
+  background: var(--bg-hover-light);
+}
+
 /* Focus Indicators */
 *:focus {
   outline: 2px solid var(--fg);
@@ -373,8 +420,8 @@ body.theme-gradient .bottom-menu-link:hover {
     margin-bottom: 0;
   }
 
-  /* Add top padding to content to avoid icon overlap */
-  #app {
+  /* Add top padding to content to avoid icon overlap - only for V1 */
+  body:not(.v2-active) #app {
     padding-top: 100px !important;
   }
 }
@@ -385,6 +432,16 @@ body.theme-gradient .bottom-menu-link:hover {
   padding: 18px;
 }
 
+/* V2 specific app styling to enable proper centering */
+.v2-active #app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
 /* Theme Palette Menu */
 .theme-palette {
   position: fixed;
@@ -393,7 +450,7 @@ body.theme-gradient .bottom-menu-link:hover {
   z-index: 30;
 }
 
-/* Frequency Control */
+/* Frequency Control - V1 default (vertical stack) */
 .frequency-palette {
   position: fixed;
   top: max(60px, calc(12px + env(safe-area-inset-top) + 40px + 8px));
@@ -401,7 +458,13 @@ body.theme-gradient .bottom-menu-link:hover {
   z-index: 20;
 }
 
-/* Refresh Icon */
+/* V2 specific: horizontal layout for frequency control */
+.v2-active .frequency-palette {
+  top: max(12px, env(safe-area-inset-top));
+  right: max(60px, calc(12px + env(safe-area-inset-right) + 40px + 8px));
+}
+
+/* Refresh Icon - V1 default (vertical stack) */
 .refresh-palette {
   position: fixed;
   top: max(
@@ -410,6 +473,11 @@ body.theme-gradient .bottom-menu-link:hover {
   );
   right: max(12px, env(safe-area-inset-right));
   z-index: 10;
+}
+
+/* V2 specific: horizontal layout for refresh icon */
+.v2-active .refresh-palette {
+  top: max(12px, env(safe-area-inset-top));
 }
 
 .refresh-icon {
@@ -564,6 +632,11 @@ body.theme-gradient .frequency-option {
   color: var(--muted);
 }
 
+/* V2 specific: remove border from frequency button */
+.v2-active .frequency-btn {
+  border: none;
+}
+
 /* Dark mode frequency button color */
 body.theme-dark .frequency-btn {
   color: var(--muted);
@@ -695,6 +768,21 @@ body.theme-gradient .frequency-option.active {
   transform: translate(-50%, -50%);
 }
 
+/* V1 specific: add top margin to avoid version toggle overlap */
+/* For absolute positioning (above 1000px) */
+@media (min-width: 1001px) {
+  .v1-active .museum-layout {
+    top: calc(50% + 40px);
+  }
+}
+
+/* For static positioning in middle range (769px-1000px) */
+@media (min-width: 769px) and (max-width: 1000px) {
+  .v1-active .museum-layout {
+    margin-top: 60px !important;
+  }
+}
+
 .artwork-section {
   flex-shrink: 0;
 }
@@ -714,27 +802,15 @@ body.theme-dark .info-card {
 }
 
 body.theme-gradient .info-card {
-  background: var(--bg-card);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
 }
 
 .desc {
   font-size: 14px;
-  margin: 0 0 16px;
+  margin: 0 0 20px;
   color: var(--text-secondary);
   line-height: 1.4;
-}
-
-.read-more {
-  display: inline-block;
-  font-size: 13px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  margin-bottom: 20px;
-  transition: color 0.2s ease;
-}
-
-.read-more:hover {
-  color: var(--text-primary);
 }
 
 /* Dark mode info card text styles */
@@ -742,24 +818,8 @@ body.theme-dark .desc {
   color: var(--text-secondary);
 }
 
-body.theme-dark .read-more {
-  color: var(--text-secondary);
-}
-
-body.theme-dark .read-more:hover {
-  color: var(--text-primary);
-}
-
 body.theme-gradient .desc {
-  color: var(--text-secondary);
-}
-
-body.theme-gradient .read-more {
-  color: var(--text-secondary);
-}
-
-body.theme-gradient .read-more:hover {
-  color: var(--text-primary);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 /* Responsive layout - stack when not enough space for side-by-side */
@@ -828,8 +888,8 @@ body.theme-dark .btn {
 
 body.theme-gradient button,
 body.theme-gradient .btn {
-  border-color: var(--border-light);
-  color: var(--text-secondary);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* Standalone action icon (e.g., refresh) */
@@ -903,6 +963,13 @@ button:hover,
 body.theme-dark button:hover,
 body.theme-dark .btn:hover {
   background: var(--bg-hover-light);
+}
+
+body.theme-gradient button:hover,
+body.theme-gradient .btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Error Page */
@@ -1126,16 +1193,158 @@ body.theme-gradient.gradient-3 {
 }
 
 body.theme-gradient.gradient-4 {
-  background: linear-gradient(160deg, #e0f2f1 0%, #e8eaf6 50%, #f9fbe7 100%);
+  background: radial-gradient(circle at top left, #1a237e 0%, transparent 50%),
+    radial-gradient(circle at top right, #283593 0%, transparent 50%),
+    radial-gradient(circle at bottom center, #1e3a8a 0%, transparent 50%),
+    #0f172a;
 }
 
 body.theme-gradient.gradient-5 {
-  background: linear-gradient(160deg, #cfd9df 0%, #a6c0fe 40%, #fbc2eb 100%);
+  background: radial-gradient(circle at top left, #064e3b 0%, transparent 50%),
+    radial-gradient(circle at bottom right, #166534 0%, transparent 50%),
+    radial-gradient(circle at top right, #155e75 0%, transparent 50%), #0f1419;
+}
+
+/* V2 Layout - Simplified and sketch-focused */
+.v2-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.v2-sketch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 90vw;
+}
+
+.v2-image-link {
+  display: block;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.v2-image-link:hover {
+  transform: scale(1.02);
+}
+
+.v2-sketch-img {
+  display: block;
+  max-width: min(70vw, 600px);
+  max-height: 70vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: opacity 0.25s ease;
+  opacity: 0;
+}
+
+.v2-sketch-img.is-loaded {
+  opacity: 1;
+}
+
+.extra-links {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.small-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-size: 13px;
+}
+
+.small-link:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+/* V2 Share functionality */
+.v2-share-container {
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.share-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.share-link:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+/* Dark mode share link styles */
+body.theme-dark .share-link {
+  color: var(--text-secondary);
+}
+
+body.theme-dark .share-link:hover {
+  color: var(--text-primary);
+}
+
+.v2-copied-notification {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--bg-notification);
+  color: var(--text-notification);
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.v2-copied-notification.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Dark mode styles for V2 */
+body.theme-dark .extra-links {
+  color: var(--text-secondary);
+}
+
+body.theme-dark .small-link {
+  color: var(--text-secondary);
+}
+
+body.theme-dark .small-link:hover {
+  color: var(--text-primary);
 }
 
 /* Mobile responsive layout for top controls */
 @media (max-width: 768px) {
-  /* Horizontal layout for refresh, frequency, and theme icons (left to right) */
+  /* Mobile layout for both V1 and V2 - horizontal layout */
   .refresh-palette {
     top: max(12px, env(safe-area-inset-top)) !important;
     right: max(12px, env(safe-area-inset-right)) !important;
@@ -1155,5 +1364,21 @@ body.theme-gradient.gradient-5 {
       108px,
       calc(12px + env(safe-area-inset-right) + 40px + 8px + 40px + 8px)
     ) !important;
+  }
+
+  /* V2 mobile adjustments */
+  .v2-sketch-container {
+    max-width: 95vw;
+  }
+
+  .v2-sketch-img {
+    max-width: 85vw;
+    max-height: 65vh;
+  }
+
+  .extra-links {
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
   }
 }
