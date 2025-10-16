@@ -2,10 +2,14 @@
 const API = "https://sketchplanations.com/api/extension/new-tab";
 //const API = "http://localhost:3000/api/extension/new-tab";
 
-// Version control constants
-const VERSION_V1 = "v1";
-const VERSION_V2 = "v2";
-const DEFAULT_VERSION = VERSION_V1;
+// Gradient color sets for smooth transitions
+const gradientColorSets = [
+  { c1: "#2e2f33", c2: "#3c4a63", c3: "#6a5b76" },
+  { c1: "#212282", c2: "#79329c", c3: "#773061" },
+  { c1: "#4e5d94", c2: "#657fad", c3: "#9d7bbd" },
+  { c1: "#1a237e", c2: "#283593", c3: "#1e3a8a" },
+  { c1: "#064e3b", c2: "#166534", c3: "#155e75" },
+];
 
 // Frequency control constants
 const FREQUENCY_DAILY = "daily";
@@ -76,15 +80,6 @@ async function getLastFetchTime() {
 
 async function setLastFetchTime(time) {
   await storage.set("lastFetchTime", time);
-}
-
-// Version control functions
-async function getVersion() {
-  return await storage.get("version", DEFAULT_VERSION);
-}
-
-async function setVersion(version) {
-  await storage.set("version", version);
 }
 
 async function fetchSketchData() {
@@ -159,91 +154,8 @@ async function rememberSketch(uid) {
   await storage.set("recent", recent);
 }
 
-function firstSentence(str) {
-  if (!str) return "";
-  const s = str.trim();
-  const m = s.match(/^(.+?[.!?])(\s|$)/);
-  if (m) return m[1];
-  return s;
-}
-
 async function render(sketchData) {
-  const version = await getVersion();
-
-  // Add body class for V2 styling
-  if (version === VERSION_V2) {
-    document.body.classList.add("v2-active");
-    document.body.classList.remove("v1-active");
-    renderV2(sketchData);
-  } else {
-    document.body.classList.add("v1-active");
-    document.body.classList.remove("v2-active");
-    renderV1(sketchData);
-  }
-}
-
-function renderV1(sketchData) {
-  const app = document.getElementById("app");
-  const url = sketchData.url;
-  const desc = firstSentence(sketchData.description || "");
-  const printsBtn = sketchData.prints
-    ? `<a class="btn" href="${sketchData.prints}" target="_blank" rel="noopener" tabindex="3">
-        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        Buy prints
-      </a>`
-    : "";
-
-  const podcastBtn = sketchData.podcastUrl
-    ? `<a class="btn" href="${sketchData.podcastUrl}" target="_blank" rel="noopener" tabindex="4">
-        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>
-        </svg>
-        Listen
-      </a>`
-    : "";
-
-  app.innerHTML = `
-    <h1 class="sr-only">${sketchData.title}</h1>
-    <div class="museum-layout">
-      <div class="artwork-section">
-        ${
-          sketchData.image
-            ? `<a href="${url}" target="_blank" rel="noopener" class="image-link"><img class="sketch-img" src="${
-                sketchData.image
-              }" alt="${
-                sketchData.imageAlt || sketchData.title
-              }" loading="lazy"></a>`
-            : ""
-        }
-      </div>
-      <div class="info-card">
-        ${desc ? `<p class="desc">${desc}</p>` : ``}
-        <div class="actions">
-          <div class="relative">
-            <div id="copiedNotification" class="copied-notification">
-              Link copied!
-            </div>
-            <button id="copyBtn" title="Copy a link to this sketch" tabindex="2">
-              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                <polyline points="16,6 12,2 8,6"/>
-                <line x1="12" y1="2" x2="12" y2="15"/>
-              </svg>
-              Share
-            </button>
-           </div>
-           ${printsBtn}
-           ${podcastBtn}
-         </div>
-      </div>
-    </div>
-  `;
-
-  setupV1Interactions(sketchData, url);
+  renderV2(sketchData);
 }
 
 function renderV2(sketchData) {
@@ -298,74 +210,6 @@ function renderV2(sketchData) {
   `;
 
   setupV2Interactions(sketchData, url);
-}
-
-function setupV1Interactions(sketchData, url) {
-  // fade-in when image loads
-  const img = document.querySelector(".sketch-img");
-  if (img) {
-    if (img.complete) img.classList.add("is-loaded");
-    else img.addEventListener("load", () => img.classList.add("is-loaded"));
-  }
-
-  const refreshBtn = document.getElementById("refreshBtn");
-  refreshBtn.onclick = async () => {
-    try {
-      loading("Getting a new sketch…");
-      const sketchData = await fetchNewSketch();
-      await rememberSketch(sketchData.uid);
-      await renderOrRedirect(sketchData);
-    } catch (err) {
-      showError(err);
-    }
-  };
-
-  // Add keyboard support for refresh button (div element)
-  refreshBtn.addEventListener("keydown", async (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      try {
-        loading("Getting a new sketch…");
-        const sketchData = await fetchNewSketch();
-        await rememberSketch(sketchData.uid);
-        await renderOrRedirect(sketchData);
-      } catch (err) {
-        showError(err);
-      }
-    }
-  });
-
-  document.getElementById("copyBtn").onclick = async () => {
-    await navigator.clipboard.writeText(url);
-
-    // Show copied notification
-    const notification = document.getElementById("copiedNotification");
-    notification.classList.add("show");
-
-    // Hide after 2 seconds
-    setTimeout(() => {
-      notification.classList.remove("show");
-    }, 2000);
-  };
-
-  // Keyboard shortcuts
-  window.onkeydown = (e) => {
-    const k = e.key.toLowerCase();
-    if (k === "n" || e.key === "ArrowRight") {
-      document.getElementById("refreshBtn").click();
-    } else if (k === "v") {
-      // Open the main sketch link (image)
-      const a = document.querySelector(".image-link");
-      if (a) a.click();
-    } else if (k === "c") {
-      document.getElementById("copyBtn").click();
-    } else if (k === "p") {
-      const p = document.querySelector(
-        '.actions a[href][target="_blank"]:nth-child(2)'
-      );
-      if (p && p.textContent.trim().toLowerCase() === "prints") p.click();
-    }
-  };
 }
 
 function setupV2Interactions(sketchData, url) {
@@ -517,95 +361,65 @@ async function renderOrRedirect(sketchData) {
 
 // ---- Theme toggle ----
 async function initTheme() {
-  const version = await getVersion();
+  // Use saved theme or default to system preference
+  const saved = await storage.get("theme", null);
+  const prefersDark =
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = saved || (prefersDark ? "dark" : "light");
+  applyTheme(theme);
+  updateThemeMenu(theme);
 
-  // Set body class for version-specific styling
-  if (version === VERSION_V2) {
-    document.body.classList.add("v2-active");
-    document.body.classList.remove("v1-active");
-    // V2: Always respect system preferences
-    const prefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const theme = prefersDark ? "dark" : "light";
-    applyTheme(theme);
-
-    // Listen for OS theme changes in V2
-    if (window.matchMedia) {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      mediaQuery.addEventListener("change", (e) => {
+  // Listen for OS theme changes (only if no saved preference)
+  if (!saved && window.matchMedia) {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", async (e) => {
+      // Only update if user hasn't manually set a preference
+      const currentSaved = await storage.get("theme", null);
+      if (!currentSaved) {
         const newTheme = e.matches ? "dark" : "light";
         applyTheme(newTheme);
-      });
-    }
-  } else {
-    // V1: Use saved theme or default to system preference
-    document.body.classList.add("v1-active");
-    document.body.classList.remove("v2-active");
-    const saved = await storage.get("theme", null);
-    const prefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const theme = saved || (prefersDark ? "dark" : "light");
-    applyTheme(theme);
-    updateThemeMenu(theme);
-
-    // Listen for OS theme changes (only if no saved preference)
-    if (!saved && window.matchMedia) {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      mediaQuery.addEventListener("change", async (e) => {
-        // Only update if user hasn't manually set a preference
-        const currentSaved = await storage.get("theme", null);
-        if (!currentSaved) {
-          const newTheme = e.matches ? "dark" : "light";
-          applyTheme(newTheme);
-          updateThemeMenu(newTheme);
-        }
-      });
-    }
+        updateThemeMenu(newTheme);
+      }
+    });
   }
 
   // Initialize frequency menu
   const frequency = await getFrequency();
   updateFrequencyMenu(frequency);
 
-  // Setup version toggle
-  await setupVersionToggle();
+  // Setup palette menu for theme selection (light/dark/gradient)
+  const paletteBtn = document.getElementById("paletteBtn");
+  const themeMenu = document.getElementById("themeMenu");
+  const themeOptions = document.querySelectorAll(".theme-option");
 
-  // Setup palette menu (only for V1)
-  if (version === VERSION_V1) {
-    const paletteBtn = document.getElementById("paletteBtn");
-    const themeMenu = document.getElementById("themeMenu");
-    const themeOptions = document.querySelectorAll(".theme-option");
+  // Toggle menu on palette button click
+  paletteBtn.onclick = (e) => {
+    e.stopPropagation();
+    // Close frequency menu when opening theme menu
+    const frequencyMenu = document.getElementById("frequencyMenu");
+    frequencyMenu.classList.add("hidden");
+    themeMenu.classList.toggle("hidden");
+  };
 
-    // Toggle menu on palette button click
-    paletteBtn.onclick = (e) => {
-      e.stopPropagation();
-      // Close frequency menu when opening theme menu
-      const frequencyMenu = document.getElementById("frequencyMenu");
-      frequencyMenu.classList.add("hidden");
-      themeMenu.classList.toggle("hidden");
+  // Close menu when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".theme-palette")) {
+      themeMenu.classList.add("hidden");
+    }
+  });
+
+  // Handle theme option clicks
+  themeOptions.forEach((option) => {
+    option.onclick = async (e) => {
+      e.preventDefault();
+      const selectedTheme = option.dataset.theme;
+      applyTheme(selectedTheme);
+      await storage.set("theme", selectedTheme);
+      updateThemeMenu(selectedTheme);
+      themeMenu.classList.add("hidden");
     };
-
-    // Close menu when clicking outside
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest(".theme-palette")) {
-        themeMenu.classList.add("hidden");
-      }
-    });
-
-    // Handle theme option clicks
-    themeOptions.forEach((option) => {
-      option.onclick = async (e) => {
-        e.preventDefault();
-        const selectedTheme = option.dataset.theme;
-        applyTheme(selectedTheme);
-        await storage.set("theme", selectedTheme);
-        updateThemeMenu(selectedTheme);
-        themeMenu.classList.add("hidden");
-      };
-    });
-  }
+  });
 
   // Setup frequency menu
   const frequencyBtn = document.getElementById("frequencyBtn");
@@ -615,11 +429,9 @@ async function initTheme() {
   // Toggle frequency menu on button click
   frequencyBtn.onclick = (e) => {
     e.stopPropagation();
-    // Close theme menu when opening frequency menu (only if V1)
-    if (version === VERSION_V1) {
-      const themeMenu = document.getElementById("themeMenu");
-      themeMenu.classList.add("hidden");
-    }
+    // Close theme menu when opening frequency menu
+    const themeMenu = document.getElementById("themeMenu");
+    themeMenu.classList.add("hidden");
     frequencyMenu.classList.toggle("hidden");
   };
 
@@ -638,10 +450,8 @@ async function initTheme() {
   bottomMenuBtn.onclick = (e) => {
     e.stopPropagation();
     // Close other menus when opening bottom menu
-    if (version === VERSION_V1) {
-      const themeMenu = document.getElementById("themeMenu");
-      themeMenu.classList.add("hidden");
-    }
+    const themeMenu = document.getElementById("themeMenu");
+    themeMenu.classList.add("hidden");
     frequencyMenu.classList.add("hidden");
     bottomMenu.classList.toggle("hidden");
   };
@@ -663,49 +473,6 @@ async function initTheme() {
       frequencyMenu.classList.add("hidden");
     };
   });
-
-  // Update UI visibility based on version
-  updateUIForVersion(version);
-}
-
-async function setupVersionToggle() {
-  const version = await getVersion();
-
-  const v1Link = document.getElementById("v1Link");
-  const v2Link = document.getElementById("v2Link");
-
-  // Update active states
-  v1Link.classList.toggle("active", version === VERSION_V1);
-  v2Link.classList.toggle("active", version === VERSION_V2);
-
-  // Add click handlers
-  v1Link.onclick = async (e) => {
-    e.preventDefault();
-    await setVersion(VERSION_V1);
-    location.reload(); // Reload to apply changes
-  };
-
-  v2Link.onclick = async (e) => {
-    e.preventDefault();
-    await setVersion(VERSION_V2);
-    location.reload(); // Reload to apply changes
-  };
-}
-
-function updateUIForVersion(version) {
-  const themeControls = document.querySelector(".theme-palette");
-
-  if (version === VERSION_V2) {
-    // Hide theme controls in V2
-    if (themeControls) {
-      themeControls.style.display = "none";
-    }
-  } else {
-    // Show theme controls in V1
-    if (themeControls) {
-      themeControls.style.display = "block";
-    }
-  }
 }
 
 function updateThemeMenu(activeTheme) {
@@ -731,13 +498,6 @@ function updateFrequencyMenu(activeFrequency) {
 function applyTheme(mode) {
   document.body.classList.remove("theme-dark");
   document.body.classList.remove("theme-gradient");
-  document.body.classList.remove(
-    "gradient-1",
-    "gradient-2",
-    "gradient-3",
-    "gradient-4",
-    "gradient-5"
-  );
 
   if (mode === "dark") {
     document.body.classList.add("theme-dark");
@@ -761,30 +521,26 @@ function startGradientRotation() {
   // Only start rotation if we're in gradient mode
   if (!document.body.classList.contains("theme-gradient")) return;
 
-  const gradients = [
-    "gradient-1",
-    "gradient-2",
-    "gradient-3",
-    "gradient-4",
-    "gradient-5",
-  ];
   let currentIndex = 0;
 
-  // Set initial gradient
-  document.body.classList.add(gradients[currentIndex]);
+  // Set initial gradient colors (already set in CSS, but ensure they're applied)
+  const initialColors = gradientColorSets[currentIndex];
+  document.body.style.setProperty("--gradient-color-1", initialColors.c1);
+  document.body.style.setProperty("--gradient-color-2", initialColors.c2);
+  document.body.style.setProperty("--gradient-color-3", initialColors.c3);
 
-  // Rotate every 30 seconds
+  // Rotate gradients by updating CSS custom properties
   setInterval(() => {
     if (!document.body.classList.contains("theme-gradient")) return;
 
-    // Remove current gradient
-    document.body.classList.remove(gradients[currentIndex]);
-
     // Move to next gradient
-    currentIndex = (currentIndex + 1) % gradients.length;
+    currentIndex = (currentIndex + 1) % gradientColorSets.length;
+    const colors = gradientColorSets[currentIndex];
 
-    // Add new gradient
-    document.body.classList.add(gradients[currentIndex]);
+    // Update CSS variables - browser will smoothly transition (duration set in CSS)
+    document.body.style.setProperty("--gradient-color-1", colors.c1);
+    document.body.style.setProperty("--gradient-color-2", colors.c2);
+    document.body.style.setProperty("--gradient-color-3", colors.c3);
   }, 300000); // 5 minutes
 }
 
