@@ -1,6 +1,6 @@
 // Configuration - uncomment the line you want to use
-const API = "https://sketchplanations.com/api/extension/new-tab";
-//const API = "http://localhost:3000/api/extension/new-tab";
+const API = "https://sketchplanations.com/api/extension/v1/new-tab";
+//const API = "http://localhost:3000/api/extension/v1/new-tab";
 
 // Gradient color sets for smooth transitions
 const gradientColorSets = [
