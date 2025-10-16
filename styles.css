@@ -1,3 +1,22 @@
+/* Gradient color custom properties for smooth transitions */
+@property --gradient-color-1 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #2e2f33;
+}
+
+@property --gradient-color-2 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #3c4a63;
+}
+
+@property --gradient-color-3 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #6a5b76;
+}
+
 /* Base + theme vars */
 * {
   box-sizing: border-box;
@@ -24,9 +43,6 @@ body {
   --bg-hover-light: rgba(255, 255, 255, 0.08);
   --bg-notification: #1f2937;
   --text-notification: white;
-  --bg-gradient-start: #2e2f33;
-  --bg-gradient-mid: #3c4a63;
-  --bg-gradient-end: #6a5b76;
 }
 body.theme-dark {
   --bg: #2e2f33;
@@ -86,53 +102,6 @@ a {
 
 .skip-link:focus {
   top: 6px;
-}
-
-/* Version Toggle */
-.version-toggle {
-  position: fixed;
-  top: max(12px, env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.version-link {
-  color: var(--muted);
-  text-decoration: none;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.version-link:hover {
-  color: var(--fg);
-  background: var(--bg-hover);
-}
-
-.version-link.active {
-  color: var(--fg);
-  background: var(--bg-hover);
-}
-
-.version-separator {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-body.theme-dark .version-link:hover,
-body.theme-gradient .version-link:hover {
-  background: var(--bg-hover-light);
-}
-
-body.theme-dark .version-link.active,
-body.theme-gradient .version-link.active {
-  background: var(--bg-hover-light);
 }
 
 /* Focus Indicators */
@@ -208,9 +177,15 @@ body.theme-gradient .version-link.active {
 }
 
 .attribution-text {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--muted);
   font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.attribution-text:hover {
+  color: var(--fg);
 }
 
 .cc-link {
@@ -226,8 +201,8 @@ body.theme-gradient .version-link.active {
 }
 
 .cc-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 
@@ -242,7 +217,7 @@ body.theme-gradient .version-link.active {
   gap: 6px;
   text-decoration: none;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   transition: color 0.2s ease;
   padding: 4px 0;
@@ -329,7 +304,7 @@ body.theme-gradient .bottom-menu-btn {
   text-decoration: none;
   cursor: pointer;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 12px;
   transition: background 0.2s ease;
   min-height: 40px;
 }
@@ -344,8 +319,8 @@ body.theme-gradient .bottom-menu-link:hover {
 }
 
 .link-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 
@@ -419,21 +394,10 @@ body.theme-gradient .bottom-menu-link:hover {
     margin-top: 8px;
     margin-bottom: 0;
   }
-
-  /* Add top padding to content to avoid icon overlap - only for V1 */
-  body:not(.v2-active) #app {
-    padding-top: 100px !important;
-  }
 }
 
 #app {
   flex: 1;
-  display: block;
-  padding: 18px;
-}
-
-/* V2 specific app styling to enable proper centering */
-.v2-active #app {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -446,38 +410,27 @@ body.theme-gradient .bottom-menu-link:hover {
 .theme-palette {
   position: fixed;
   top: max(12px, env(safe-area-inset-top));
-  right: max(12px, env(safe-area-inset-right));
+  right: max(
+    108px,
+    calc(12px + env(safe-area-inset-right) + 40px + 8px + 40px + 8px)
+  );
   z-index: 30;
 }
 
-/* Frequency Control - V1 default (vertical stack) */
+/* Frequency Control - horizontal layout */
 .frequency-palette {
   position: fixed;
-  top: max(60px, calc(12px + env(safe-area-inset-top) + 40px + 8px));
-  right: max(12px, env(safe-area-inset-right));
+  top: max(12px, env(safe-area-inset-top));
+  right: max(60px, calc(12px + env(safe-area-inset-right) + 40px + 8px));
   z-index: 20;
 }
 
-/* V2 specific: horizontal layout for frequency control */
-.v2-active .frequency-palette {
-  top: max(12px, env(safe-area-inset-top));
-  right: max(60px, calc(12px + env(safe-area-inset-right) + 40px + 8px));
-}
-
-/* Refresh Icon - V1 default (vertical stack) */
+/* Refresh Icon - horizontal layout */
 .refresh-palette {
   position: fixed;
-  top: max(
-    100px,
-    calc(12px + env(safe-area-inset-top) + 40px + 8px + 40px + 8px)
-  );
+  top: max(12px, env(safe-area-inset-top));
   right: max(12px, env(safe-area-inset-right));
   z-index: 10;
-}
-
-/* V2 specific: horizontal layout for refresh icon */
-.v2-active .refresh-palette {
-  top: max(12px, env(safe-area-inset-top));
 }
 
 .refresh-icon {
@@ -605,7 +558,7 @@ body.theme-gradient .theme-option:hover {
 body.theme-dark .theme-option.active,
 body.theme-gradient .theme-option.active {
   background: rgba(255, 255, 255, 0.9);
-  color: var(--bg-gradient-start);
+  color: #2e2f33;
 }
 
 /* Ensure text is light enough in gradient mode */
@@ -621,7 +574,7 @@ body.theme-gradient .frequency-option {
 .frequency-btn {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 12px;
   background: transparent;
   cursor: pointer;
@@ -630,11 +583,6 @@ body.theme-gradient .frequency-option {
   padding: 0;
   transition: all 0.2s ease;
   color: var(--muted);
-}
-
-/* V2 specific: remove border from frequency button */
-.v2-active .frequency-btn {
-  border: none;
 }
 
 /* Dark mode frequency button color */
@@ -717,7 +665,7 @@ body.theme-gradient .frequency-option:hover {
 body.theme-dark .frequency-option.active,
 body.theme-gradient .frequency-option.active {
   background: rgba(255, 255, 255, 0.9);
-  color: var(--bg-gradient-start);
+  color: #2e2f33;
 }
 
 /* Loading Spinner */
@@ -752,224 +700,6 @@ body.theme-gradient .frequency-option.active {
   to {
     transform: rotate(360deg);
   }
-}
-
-/* Museum Layout */
-.museum-layout {
-  display: flex;
-  gap: 12px;
-  max-width: fit-content;
-  margin: 0 auto;
-  align-items: flex-start;
-  padding-right: 60px; /* Space for theme palette */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* V1 specific: add top margin to avoid version toggle overlap */
-/* For absolute positioning (above 1000px) */
-@media (min-width: 1001px) {
-  .v1-active .museum-layout {
-    top: calc(50% + 40px);
-  }
-}
-
-/* For static positioning in middle range (769px-1000px) */
-@media (min-width: 769px) and (max-width: 1000px) {
-  .v1-active .museum-layout {
-    margin-top: 60px !important;
-  }
-}
-
-.artwork-section {
-  flex-shrink: 0;
-}
-
-.info-card {
-  background: var(--bg-card);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: var(--shadow);
-  width: 280px;
-  flex-shrink: 0;
-  backdrop-filter: blur(10px);
-}
-
-body.theme-dark .info-card {
-  background: var(--bg-card);
-}
-
-body.theme-gradient .info-card {
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(12px);
-}
-
-.desc {
-  font-size: 14px;
-  margin: 0 0 20px;
-  color: var(--text-secondary);
-  line-height: 1.4;
-}
-
-/* Dark mode info card text styles */
-body.theme-dark .desc {
-  color: var(--text-secondary);
-}
-
-body.theme-gradient .desc {
-  color: rgba(255, 255, 255, 0.65);
-}
-
-/* Responsive layout - stack when not enough space for side-by-side */
-@media (max-width: 1000px) {
-  .museum-layout {
-    flex-direction: column;
-    gap: 0; /* Remove gap, use margin instead */
-    max-width: 600px;
-    padding-right: 0; /* Remove padding when stacked */
-    margin-left: 0; /* Align with left edge */
-    position: static; /* Remove absolute positioning when stacked */
-    transform: none; /* Remove transform when stacked */
-    margin: 8px auto 28px; /* Restore normal margin when stacked */
-  }
-
-  .info-card {
-    width: 100%;
-    max-width: 400px; /* Max half the sketch width when underneath */
-    margin: 0; /* No margin - the image's bottom margin provides the spacing */
-    order: 2;
-  }
-
-  .artwork-section {
-    order: 1;
-  }
-}
-
-/* Actions row */
-.actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 0;
-}
-button,
-.btn {
-  appearance: none;
-  border: 1px solid var(--border-light);
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: transparent;
-  cursor: pointer;
-  text-decoration: none;
-  color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.btn-icon {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
-
-/* Dark mode button styles */
-body.theme-dark button,
-body.theme-dark .btn {
-  border-color: var(--border-light);
-  color: var(--text-secondary);
-}
-
-body.theme-gradient button,
-body.theme-gradient .btn {
-  border-color: rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Standalone action icon (e.g., refresh) */
-.action-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  color: var(--muted);
-  transition: color 0.2s ease, transform 0.2s ease;
-  border-radius: 8px;
-}
-
-.action-icon:hover {
-  color: var(--fg);
-  transform: scale(1.1);
-}
-
-.action-icon .btn-icon {
-  width: 16px;
-  height: 16px;
-}
-
-/* Dark mode action icon styles */
-body.theme-dark .action-icon {
-  color: var(--text-secondary);
-}
-
-body.theme-gradient .action-icon {
-  color: var(--text-secondary);
-}
-
-/* Copied notification */
-.relative {
-  position: relative;
-}
-
-.copied-notification {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-bottom: 4px;
-  padding: 8px 16px;
-  min-width: 80px;
-  border-radius: 6px;
-  background: var(--bg-notification);
-  color: var(--text-notification);
-  font-size: 12px;
-  font-weight: 500;
-  opacity: 0;
-  transform: translateX(-50%) translateY(4px);
-  transition: all 0.2s ease;
-  pointer-events: none;
-  z-index: 10;
-  white-space: nowrap;
-}
-
-.copied-notification.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-button:hover,
-.btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--border-medium);
-}
-body.theme-dark button:hover,
-body.theme-dark .btn:hover {
-  background: var(--bg-hover-light);
-}
-
-body.theme-gradient button:hover,
-body.theme-gradient .btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Error Page */
@@ -1077,74 +807,6 @@ body.theme-gradient .error-button:hover {
   opacity: 1;
 }
 
-/* Image */
-.sketch-img {
-  display: block;
-  margin: 0 auto 12px;
-  max-width: min(60vw, 550px);
-  max-height: 75vh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 12px;
-  color: transparent;
-  opacity: 1;
-  box-shadow: var(--shadow);
-  will-change: transform, box-shadow;
-  transition: opacity 0.25s ease;
-  opacity: 0;
-}
-.sketch-img.is-loaded {
-  opacity: 1;
-}
-@media (max-width: 640px) {
-  .sketch-img {
-    max-width: 85vw;
-    max-height: 70vh;
-  }
-}
-
-.floating-controls {
-  position: fixed;
-  right: max(12px, env(safe-area-inset-right));
-  bottom: calc(58px + max(12px, env(safe-area-inset-bottom)));
-  display: flex;
-  gap: 8px;
-  z-index: 20;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.floating-controls.hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(6px);
-}
-
-.about-fixed {
-  position: fixed;
-  left: max(12px, env(safe-area-inset-left));
-  bottom: max(12px, env(safe-area-inset-bottom));
-  z-index: 15;
-  opacity: 0.9;
-}
-.about-fixed a {
-  text-decoration: none;
-  color: inherit;
-  border: 1px solid var(--border);
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: transparent;
-  font-size: 13px;
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-}
-.about-fixed a:hover {
-  background: var(--bg-hover);
-}
-body.theme-dark .about-fixed a:hover {
-  background: var(--bg-hover-light);
-}
-
 /* Gradient theme: rotating gradients over time */
 body.theme-gradient {
   --bg: #2e2f33;
@@ -1163,46 +825,23 @@ body.theme-gradient {
   --bg-hover: rgba(0, 0, 0, 0.05);
   --bg-hover-light: rgba(255, 255, 255, 0.08);
 
-  /* Default gradient - will be overridden by JavaScript */
+  /* Set initial gradient colors */
+  --gradient-color-1: #2e2f33;
+  --gradient-color-2: #3c4a63;
+  --gradient-color-3: #6a5b76;
+
+  /* Use custom properties for smooth color transitions */
   background: radial-gradient(
     circle at 35% 20%,
-    var(--bg-gradient-start) 0%,
-    var(--bg-gradient-mid) 55%,
-    var(--bg-gradient-end) 100%
+    var(--gradient-color-1) 0%,
+    var(--gradient-color-2) 55%,
+    var(--gradient-color-3) 100%
   );
   color: var(--fg);
-  transition: background 2s ease-in-out;
-}
 
-/* Gradient variations */
-body.theme-gradient.gradient-1 {
-  background: radial-gradient(
-    circle at 35% 20%,
-    #2e2f33 0%,
-    #3c4a63 55%,
-    #6a5b76 100%
-  );
-}
-
-body.theme-gradient.gradient-2 {
-  background: linear-gradient(135deg, #212282 0%, #79329c 50%, #773061 100%);
-}
-
-body.theme-gradient.gradient-3 {
-  background: linear-gradient(160deg, #4e5d94 0%, #657fad 50%, #9d7bbd 100%);
-}
-
-body.theme-gradient.gradient-4 {
-  background: radial-gradient(circle at top left, #1a237e 0%, transparent 50%),
-    radial-gradient(circle at top right, #283593 0%, transparent 50%),
-    radial-gradient(circle at bottom center, #1e3a8a 0%, transparent 50%),
-    #0f172a;
-}
-
-body.theme-gradient.gradient-5 {
-  background: radial-gradient(circle at top left, #064e3b 0%, transparent 50%),
-    radial-gradient(circle at bottom right, #166534 0%, transparent 50%),
-    radial-gradient(circle at top right, #155e75 0%, transparent 50%), #0f1419;
+  /* Transition the gradient color variables for smooth blending */
+  transition: --gradient-color-1 45s ease-in-out,
+    --gradient-color-2 45s ease-in-out, --gradient-color-3 45s ease-in-out;
 }
 
 /* V2 Layout - Simplified and sketch-focused */
@@ -1226,11 +865,6 @@ body.theme-gradient.gradient-5 {
 .v2-image-link {
   display: block;
   text-decoration: none;
-  transition: transform 0.2s ease;
-}
-
-.v2-image-link:hover {
-  transform: scale(1.02);
 }
 
 .v2-sketch-img {
@@ -1242,8 +876,12 @@ body.theme-gradient.gradient-5 {
   object-fit: contain;
   border-radius: 12px;
   box-shadow: var(--shadow);
-  transition: opacity 0.25s ease;
+  transition: opacity 0.25s ease, box-shadow 0.3s ease-in-out;
   opacity: 0;
+}
+
+.v2-image-link:hover .v2-sketch-img {
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 2.6rem 1.3rem -1.8rem;
 }
 
 .v2-sketch-img.is-loaded {
@@ -1303,6 +941,15 @@ body.theme-dark .share-link:hover {
   color: var(--text-primary);
 }
 
+/* Gradient mode share link styles */
+body.theme-gradient .share-link {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+body.theme-gradient .share-link:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
 .v2-copied-notification {
   position: absolute;
   bottom: 100%;
@@ -1342,31 +989,22 @@ body.theme-dark .small-link:hover {
   color: var(--text-primary);
 }
 
+/* Gradient mode styles for V2 */
+body.theme-gradient .extra-links {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+body.theme-gradient .small-link {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+body.theme-gradient .small-link:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
 /* Mobile responsive layout for top controls */
 @media (max-width: 768px) {
-  /* Mobile layout for both V1 and V2 - horizontal layout */
-  .refresh-palette {
-    top: max(12px, env(safe-area-inset-top)) !important;
-    right: max(12px, env(safe-area-inset-right)) !important;
-  }
-
-  .frequency-palette {
-    top: max(12px, env(safe-area-inset-top)) !important;
-    right: max(
-      60px,
-      calc(12px + env(safe-area-inset-right) + 40px + 8px)
-    ) !important;
-  }
-
-  .theme-palette {
-    top: max(12px, env(safe-area-inset-top)) !important;
-    right: max(
-      108px,
-      calc(12px + env(safe-area-inset-right) + 40px + 8px + 40px + 8px)
-    ) !important;
-  }
-
-  /* V2 mobile adjustments */
+  /* Mobile layout - keep horizontal layout, already set above */
   .v2-sketch-container {
     max-width: 95vw;
   }
