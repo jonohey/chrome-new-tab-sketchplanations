@@ -468,7 +468,7 @@ body.theme-gradient .refresh-icon {
 .palette-btn {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 12px;
   background: transparent;
   cursor: pointer;
@@ -702,6 +702,52 @@ body.theme-gradient .frequency-option.active {
   }
 }
 
+/* Test Mode Banner */
+.test-mode-banner {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 193, 7, 0.95);
+  color: #000000;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  text-align: center;
+  max-width: calc(100vw - 40px);
+  line-height: 1.4;
+}
+
+.test-mode-banner kbd {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 2px;
+  white-space: nowrap;
+}
+
+/* Mobile styles for test mode banner */
+@media (max-width: 768px) {
+  .test-mode-banner {
+    top: max(12px, env(safe-area-inset-top));
+    padding: 10px 16px;
+    font-size: 12px;
+    max-width: calc(100vw - 24px);
+  }
+
+  .test-mode-banner kbd {
+    font-size: 11px;
+    padding: 1px 4px;
+    margin: 0 1px;
+  }
+}
+
 /* Error Page */
 .error-container {
   display: flex;
@@ -785,6 +831,12 @@ body.theme-dark .error-button:hover {
 
 body.theme-gradient .error-button:hover {
   background: var(--bg-hover-light);
+}
+
+/* Use light text colors for error page in gradient mode (same as dark mode) */
+body.theme-gradient .error-container {
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.78);
 }
 
 /* Error sketch */
