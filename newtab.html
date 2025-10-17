@@ -6,11 +6,8 @@
     <meta name="color-scheme" content="light dark" />
     <title>Sketchplanations New Tab</title>
     <link rel="stylesheet" href="styles.css" />
-    <link
-      rel="icon"
-      href="https://sketchplanations.com/favicon-32x32.png"
-      sizes="32x32"
-    />
+    <link rel="icon" type="image/png" sizes="16x16" href="images/icon-16.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="images/icon-48.png" />
   </head>
   <body>
     <!-- Skip Link -->
@@ -153,7 +150,14 @@
       </div>
 
       <!-- Mobile Menu Button -->
-      <button id="bottomMenuBtn" class="bottom-menu-btn" title="Menu">
+      <button
+        id="bottomMenuBtn"
+        class="bottom-menu-btn"
+        title="Menu"
+        aria-label="Menu"
+        aria-expanded="false"
+        aria-haspopup="true"
+      >
         <svg
           class="menu-icon"
           viewBox="0 0 24 24"
@@ -307,6 +311,8 @@
         class="palette-btn"
         title="Theme options"
         aria-label="Theme options"
+        aria-expanded="false"
+        aria-haspopup="true"
         tabindex="10"
       >
         <svg
@@ -346,6 +352,8 @@
         class="frequency-btn"
         title="Sketch frequency options"
         aria-label="Sketch frequency options"
+        aria-expanded="false"
+        aria-haspopup="true"
         tabindex="11"
       >
         <svg

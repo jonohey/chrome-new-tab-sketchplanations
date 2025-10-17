@@ -1,6 +1,5 @@
-// Configuration - uncomment the line you want to use
+// Configuration
 const API = "https://sketchplanations.com/api/extension/v1/new-tab";
-//const API = "http://localhost:3000/api/extension/v1/new-tab";
 
 // Gradient color sets for smooth transitions
 const gradientColorSets = [
@@ -22,6 +21,9 @@ const DEFAULT_FREQUENCY = FREQUENCY_DAILY;
 
 // Test offline mode toggle
 let isTestOfflineMode = false;
+
+// Track if a fetch is in progress to prevent race conditions
+let isFetching = false;
 
 // Konami code sequence tracker for test mode toggle
 const konamiCode = [
@@ -129,27 +131,66 @@ async function setLastFetchTime(time) {
   await storage.set("lastFetchTime", time);
 }
 
-async function fetchSketchData() {
+async function fetchSketchData(retryCount = 0) {
+  const maxRetries = 2;
   const url = API + "?t=" + Date.now();
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch sketch data: " + res.status);
-  const data = await res.json();
-  if (!data || !data.uid) {
-    throw new Error("Unexpected response: " + JSON.stringify(data));
-  }
 
-  // Map the new API response to the expected format
-  return {
-    uid: data.uid,
-    title: data.title || data.uid.replace(/-/g, " "),
-    image: data.imageUrlOptimised || data.imageUrl || null,
-    url: data.pageUrl || `https://sketchplanations.com/${data.uid}`,
-    description: data.description || "",
-    prints: data.redbubbleUrl || null,
-    imageAlt: data.imageAlt || data.title || "",
-    publishedAt: data.publishedAt || null,
-    podcastUrl: data.podcastUrl || null,
-  };
+  // Add timeout to prevent hanging requests
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+  try {
+    const res = await fetch(url, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) throw new Error("Failed to fetch sketch data: " + res.status);
+    const data = await res.json();
+    if (!data || !data.uid) {
+      throw new Error("Unexpected response: " + JSON.stringify(data));
+    }
+
+    // Map the new API response to the expected format
+    return {
+      uid: data.uid,
+      title: data.title || data.uid.replace(/-/g, " "),
+      image: data.imageUrlOptimised || data.imageUrl || null,
+      url: data.pageUrl || `https://sketchplanations.com/${data.uid}`,
+      description: data.description || "",
+      prints: data.redbubbleUrl || null,
+      imageAlt: data.imageAlt || data.title || "",
+      publishedAt: data.publishedAt || null,
+      podcastUrl: data.podcastUrl || null,
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+
+    // Retry logic for transient failures
+    if (retryCount < maxRetries) {
+      const isTransientError =
+        err.name === "AbortError" ||
+        err.message.includes("Failed to fetch") ||
+        (err.message.includes("status") && err.message.match(/50[0-9]/)); // 5xx errors
+
+      if (isTransientError) {
+        const backoffDelay = Math.pow(2, retryCount) * 1000; // Exponential backoff: 1s, 2s
+        console.log(
+          `Retrying fetch after ${backoffDelay}ms (attempt ${
+            retryCount + 1
+          }/${maxRetries})`
+        );
+        await new Promise((resolve) => setTimeout(resolve, backoffDelay));
+        return fetchSketchData(retryCount + 1);
+      }
+    }
+
+    if (err.name === "AbortError") {
+      throw new Error("Request timed out");
+    }
+    throw err;
+  }
 }
 
 function prefetch(url) {
@@ -268,29 +309,35 @@ function setupV2Interactions(sketchData, url) {
   }
 
   const refreshBtn = document.getElementById("refreshBtn");
-  refreshBtn.onclick = async () => {
+
+  const handleRefresh = async () => {
+    if (isFetching) return; // Prevent concurrent fetches
+
     try {
+      isFetching = true;
+      refreshBtn.style.opacity = "0.5";
+      refreshBtn.style.pointerEvents = "none";
+
       loading("Getting a new sketch…");
       const sketchData = await fetchNewSketch();
       await rememberSketch(sketchData.uid);
       await renderOrRedirect(sketchData);
     } catch (err) {
       showError(err);
+    } finally {
+      isFetching = false;
+      refreshBtn.style.opacity = "";
+      refreshBtn.style.pointerEvents = "";
     }
   };
+
+  refreshBtn.onclick = handleRefresh;
 
   // Add keyboard support for refresh button (div element)
   refreshBtn.addEventListener("keydown", async (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      try {
-        loading("Getting a new sketch…");
-        const sketchData = await fetchNewSketch();
-        await rememberSketch(sketchData.uid);
-        await renderOrRedirect(sketchData);
-      } catch (err) {
-        showError(err);
-      }
+      await handleRefresh();
     }
   });
 
@@ -298,21 +345,33 @@ function setupV2Interactions(sketchData, url) {
   const copyBtn = document.getElementById("v2CopyBtn");
   if (copyBtn) {
     copyBtn.onclick = async () => {
-      await navigator.clipboard.writeText(url);
+      try {
+        await navigator.clipboard.writeText(url);
 
-      // Show copied notification
-      const notification = document.getElementById("v2CopiedNotification");
-      notification.classList.add("show");
+        // Show copied notification
+        const notification = document.getElementById("v2CopiedNotification");
+        notification.classList.add("show");
 
-      // Hide after 2 seconds
-      setTimeout(() => {
-        notification.classList.remove("show");
-      }, 2000);
+        // Hide after 2 seconds
+        setTimeout(() => {
+          notification.classList.remove("show");
+        }, 2000);
+      } catch (err) {
+        console.error("Failed to copy to clipboard:", err);
+        // Fallback: show error message briefly
+        const notification = document.getElementById("v2CopiedNotification");
+        notification.textContent = "Copy failed";
+        notification.classList.add("show");
+        setTimeout(() => {
+          notification.classList.remove("show");
+          notification.textContent = "Link copied!";
+        }, 2000);
+      }
     };
   }
 
   // Simplified keyboard shortcuts for V2 (now with copy button)
-  window.onkeydown = (e) => {
+  document.addEventListener("keydown", (e) => {
     const k = e.key.toLowerCase();
     if (k === "n" || e.key === "ArrowRight") {
       document.getElementById("refreshBtn").click();
@@ -324,8 +383,21 @@ function setupV2Interactions(sketchData, url) {
       // Copy link
       const copyBtn = document.getElementById("v2CopyBtn");
       if (copyBtn) copyBtn.click();
+    } else if (e.key === "Escape") {
+      // Close any open menus
+      document.getElementById("themeMenu").classList.add("hidden");
+      document.getElementById("frequencyMenu").classList.add("hidden");
+      document.getElementById("bottomMenu").classList.add("hidden");
+
+      // Reset ARIA expanded states
+      const paletteBtn = document.getElementById("paletteBtn");
+      const frequencyBtn = document.getElementById("frequencyBtn");
+      const bottomMenuBtn = document.getElementById("bottomMenuBtn");
+      if (paletteBtn) paletteBtn.setAttribute("aria-expanded", "false");
+      if (frequencyBtn) frequencyBtn.setAttribute("aria-expanded", "false");
+      if (bottomMenuBtn) bottomMenuBtn.setAttribute("aria-expanded", "false");
     }
-  };
+  });
 }
 
 function loading() {
@@ -412,7 +484,10 @@ async function renderOrRedirect(sketchData) {
   try {
     const nextSketchData = await fetchSketchData();
     prefetch(nextSketchData.url);
-  } catch (_) {}
+  } catch (err) {
+    // Prefetch is non-critical, log but don't show error to user
+    console.warn("Prefetch failed:", err.message);
+  }
 }
 
 // ---- Theme toggle ----
@@ -455,13 +530,15 @@ async function initTheme() {
     // Close frequency menu when opening theme menu
     const frequencyMenu = document.getElementById("frequencyMenu");
     frequencyMenu.classList.add("hidden");
-    themeMenu.classList.toggle("hidden");
+    const isHidden = themeMenu.classList.toggle("hidden");
+    paletteBtn.setAttribute("aria-expanded", !isHidden);
   };
 
   // Close menu when clicking outside
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".theme-palette")) {
       themeMenu.classList.add("hidden");
+      paletteBtn.setAttribute("aria-expanded", "false");
     }
   });
 
@@ -474,6 +551,7 @@ async function initTheme() {
       await storage.set("theme", selectedTheme);
       updateThemeMenu(selectedTheme);
       themeMenu.classList.add("hidden");
+      paletteBtn.setAttribute("aria-expanded", "false");
     };
   });
 
@@ -488,13 +566,15 @@ async function initTheme() {
     // Close theme menu when opening frequency menu
     const themeMenu = document.getElementById("themeMenu");
     themeMenu.classList.add("hidden");
-    frequencyMenu.classList.toggle("hidden");
+    const isHidden = frequencyMenu.classList.toggle("hidden");
+    frequencyBtn.setAttribute("aria-expanded", !isHidden);
   };
 
   // Close frequency menu when clicking outside
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".frequency-palette")) {
       frequencyMenu.classList.add("hidden");
+      frequencyBtn.setAttribute("aria-expanded", "false");
     }
   });
 
@@ -509,13 +589,15 @@ async function initTheme() {
     const themeMenu = document.getElementById("themeMenu");
     themeMenu.classList.add("hidden");
     frequencyMenu.classList.add("hidden");
-    bottomMenu.classList.toggle("hidden");
+    const isHidden = bottomMenu.classList.toggle("hidden");
+    bottomMenuBtn.setAttribute("aria-expanded", !isHidden);
   };
 
   // Close bottom menu when clicking outside
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".bottom-menu")) {
       bottomMenu.classList.add("hidden");
+      bottomMenuBtn.setAttribute("aria-expanded", "false");
     }
   });
 
@@ -527,6 +609,7 @@ async function initTheme() {
       await setFrequency(selectedFrequency);
       updateFrequencyMenu(selectedFrequency);
       frequencyMenu.classList.add("hidden");
+      frequencyBtn.setAttribute("aria-expanded", "false");
     };
   });
 }
