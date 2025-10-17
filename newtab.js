@@ -11,6 +11,9 @@ const gradientColorSets = [
   { c1: "#064e3b", c2: "#166534", c3: "#155e75" },
 ];
 
+// Gradient rotation interval (5 minutes in milliseconds)
+const GRADIENT_ROTATION_INTERVAL_MS = 300000;
+
 // Frequency control constants
 const FREQUENCY_DAILY = "daily";
 const FREQUENCY_HOURLY = "hourly";
@@ -574,27 +577,78 @@ function startGradientRotation() {
   // Only start rotation if we're in gradient mode
   if (!document.body.classList.contains("theme-gradient")) return;
 
-  let currentIndex = 0;
+  // Calculate current gradient index based on time of day
+  function getCurrentGradientIndex() {
+    const now = new Date();
+    const midnight = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0
+    );
+    const elapsed = now - midnight; // milliseconds since midnight
+    return (
+      Math.floor(elapsed / GRADIENT_ROTATION_INTERVAL_MS) %
+      gradientColorSets.length
+    );
+  }
 
-  // Set initial gradient colors (already set in CSS, but ensure they're applied)
-  const initialColors = gradientColorSets[currentIndex];
-  document.body.style.setProperty("--gradient-color-1", initialColors.c1);
-  document.body.style.setProperty("--gradient-color-2", initialColors.c2);
-  document.body.style.setProperty("--gradient-color-3", initialColors.c3);
+  // Apply gradient colors for a given index
+  function applyGradient(index, skipTransition = false) {
+    const colors = gradientColorSets[index];
+    const transitionDurationSeconds = GRADIENT_ROTATION_INTERVAL_MS / 1000;
 
-  // Rotate gradients by updating CSS custom properties
-  setInterval(() => {
+    if (skipTransition) {
+      // Temporarily disable transition for instant gradient change
+      document.body.style.transition = "none";
+
+      document.body.style.setProperty("--gradient-color-1", colors.c1);
+      document.body.style.setProperty("--gradient-color-2", colors.c2);
+      document.body.style.setProperty("--gradient-color-3", colors.c3);
+
+      // Re-enable transition after the paint
+      requestAnimationFrame(() => {
+        document.body.style.transition = `--gradient-color-1 ${transitionDurationSeconds}s ease-in-out, --gradient-color-2 ${transitionDurationSeconds}s ease-in-out, --gradient-color-3 ${transitionDurationSeconds}s ease-in-out`;
+      });
+    } else {
+      // Set transition duration to match rotation interval
+      document.body.style.transition = `--gradient-color-1 ${transitionDurationSeconds}s ease-in-out, --gradient-color-2 ${transitionDurationSeconds}s ease-in-out, --gradient-color-3 ${transitionDurationSeconds}s ease-in-out`;
+
+      document.body.style.setProperty("--gradient-color-1", colors.c1);
+      document.body.style.setProperty("--gradient-color-2", colors.c2);
+      document.body.style.setProperty("--gradient-color-3", colors.c3);
+    }
+  }
+
+  // Schedule next gradient transition
+  function scheduleNextTransition() {
     if (!document.body.classList.contains("theme-gradient")) return;
 
-    // Move to next gradient
-    currentIndex = (currentIndex + 1) % gradientColorSets.length;
-    const colors = gradientColorSets[currentIndex];
+    // Calculate time until next gradient boundary
+    const now = new Date();
+    const elapsed =
+      now - new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const msUntilNext =
+      GRADIENT_ROTATION_INTERVAL_MS - (elapsed % GRADIENT_ROTATION_INTERVAL_MS);
 
-    // Update CSS variables - browser will smoothly transition (duration set in CSS)
-    document.body.style.setProperty("--gradient-color-1", colors.c1);
-    document.body.style.setProperty("--gradient-color-2", colors.c2);
-    document.body.style.setProperty("--gradient-color-3", colors.c3);
-  }, 300000); // 5 minutes
+    setTimeout(() => {
+      // Recalculate index from midnight (prevents drift)
+      const currentIndex = getCurrentGradientIndex();
+      applyGradient(currentIndex);
+
+      // Schedule the next transition
+      scheduleNextTransition();
+    }, msUntilNext);
+  }
+
+  // Set initial gradient based on current time (skip transition for instant application)
+  const initialIndex = getCurrentGradientIndex();
+  applyGradient(initialIndex, true);
+
+  // Schedule first transition
+  scheduleNextTransition();
 }
 
 async function init() {
