@@ -17,6 +17,22 @@ const FREQUENCY_HOURLY = "hourly";
 const FREQUENCY_EACH_TAB = "each-tab";
 const DEFAULT_FREQUENCY = FREQUENCY_DAILY;
 
+// Test offline mode toggle
+let isTestOfflineMode = false;
+
+// Konami code sequence tracker for test mode toggle
+const konamiCode = [
+  "ArrowUp",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowLeft",
+  "ArrowRight",
+];
+let konamiIndex = 0;
+
 const storage = {
   async get(key, defaultValue = null) {
     // Fallback for when not running as Chrome extension
@@ -36,6 +52,34 @@ const storage = {
     await chrome.storage.local.set({ [key]: val });
   },
 };
+
+// Konami code to toggle test offline mode
+// Sequence: ↑ ↑ ↓ ↓ ← → ← →
+document.addEventListener("keydown", async (e) => {
+  // Check if the key matches the next key in the Konami code sequence
+  if (e.key === konamiCode[konamiIndex]) {
+    konamiIndex++;
+
+    // If the full sequence is complete
+    if (konamiIndex === konamiCode.length) {
+      e.preventDefault();
+      // Reset the index
+      konamiIndex = 0;
+
+      // Read current state from storage and toggle it
+      const currentState = await storage.get("testOfflineMode", false);
+      isTestOfflineMode = !currentState;
+      console.log(`🎮 Test offline mode: ${isTestOfflineMode ? "ON" : "OFF"}`);
+
+      // Persist the new state before reloading
+      await storage.set("testOfflineMode", isTestOfflineMode);
+      window.location.reload();
+    }
+  } else {
+    // Reset if wrong key is pressed
+    konamiIndex = 0;
+  }
+});
 
 // Frequency control functions
 function shouldFetchNewSketch(frequency, lastFetchTime) {
@@ -296,7 +340,16 @@ function loading() {
 
 function showError(err) {
   const app = document.getElementById("app");
+
+  // Check if in test mode and add banner if so
+  const testModeBanner = isTestOfflineMode
+    ? `<div class="test-mode-banner">
+         Testing mode! Use Konami code to return: <kbd>↑</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> <kbd>←</kbd> <kbd>→</kbd>
+       </div>`
+    : "";
+
   app.innerHTML = `
+    ${testModeBanner}
     <div class="error-container">
       <div class="error-icon">
         <svg
@@ -546,6 +599,13 @@ function startGradientRotation() {
 
 async function init() {
   await initTheme();
+
+  // Check if test offline mode is enabled (read from storage)
+  isTestOfflineMode = await storage.get("testOfflineMode", false);
+  if (isTestOfflineMode) {
+    showError(new Error("Testing offline mode"));
+    return;
+  }
 
   try {
     loading("Loading a fresh Sketchplanation…");
