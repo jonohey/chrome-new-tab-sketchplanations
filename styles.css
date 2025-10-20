@@ -893,8 +893,8 @@ body.theme-gradient {
     --gradient-color-2 45s ease-in-out, --gradient-color-3 45s ease-in-out;
 }
 
-/* V2 Layout - Simplified and sketch-focused */
-.v2-layout {
+/* Layout - Simplified and sketch-focused */
+.layout {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -903,7 +903,7 @@ body.theme-gradient {
   height: 100%;
 }
 
-.v2-sketch-container {
+.sketch-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -911,12 +911,12 @@ body.theme-gradient {
   max-width: 90vw;
 }
 
-.v2-image-link {
+.image-link {
   display: block;
   text-decoration: none;
 }
 
-.v2-sketch-img {
+.sketch-img {
   display: block;
   max-width: min(70vw, 600px);
   max-height: 70vh;
@@ -929,11 +929,11 @@ body.theme-gradient {
   opacity: 0;
 }
 
-.v2-image-link:hover .v2-sketch-img {
+.image-link:hover .sketch-img {
   box-shadow: rgba(0, 0, 0, 0.12) 0px 2.6rem 1.3rem -1.8rem;
 }
 
-.v2-sketch-img.is-loaded {
+.sketch-img.is-loaded {
   opacity: 1;
 }
 
@@ -958,8 +958,8 @@ body.theme-gradient {
   text-decoration: underline;
 }
 
-/* V2 Share functionality */
-.v2-share-container {
+/* Share functionality */
+.share-container {
   position: relative;
   display: inline-block;
   vertical-align: baseline;
@@ -999,7 +999,7 @@ body.theme-gradient .share-link:hover {
   color: rgba(255, 255, 255, 0.95);
 }
 
-.v2-copied-notification {
+.copied-notification {
   position: absolute;
   bottom: 100%;
   left: 50%;
@@ -1020,12 +1020,12 @@ body.theme-gradient .share-link:hover {
   text-align: center;
 }
 
-.v2-copied-notification.show {
+.copied-notification.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
 
-/* Dark mode styles for V2 */
+/* Dark mode styles */
 body.theme-dark .extra-links {
   color: var(--text-secondary);
 }
@@ -1038,7 +1038,7 @@ body.theme-dark .small-link:hover {
   color: var(--text-primary);
 }
 
-/* Gradient mode styles for V2 */
+/* Gradient mode styles */
 body.theme-gradient .extra-links {
   color: rgba(255, 255, 255, 0.78);
 }
@@ -1054,11 +1054,11 @@ body.theme-gradient .small-link:hover {
 /* Mobile responsive layout for top controls */
 @media (max-width: 768px) {
   /* Mobile layout - keep horizontal layout, already set above */
-  .v2-sketch-container {
+  .sketch-container {
     max-width: 95vw;
   }
 
-  .v2-sketch-img {
+  .sketch-img {
     max-width: 85vw;
     max-height: 65vh;
   }

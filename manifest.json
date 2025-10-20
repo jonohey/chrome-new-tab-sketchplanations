@@ -13,7 +13,10 @@
     "128": "images/favicon-128x128.png"
   },
   "permissions": ["storage"],
-  "host_permissions": ["https://sketchplanations.com/*"],
+  "host_permissions": [
+    "https://sketchplanations.com/*",
+    "https://www.google.com/*"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }
