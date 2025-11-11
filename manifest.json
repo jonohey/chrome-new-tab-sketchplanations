@@ -6,11 +6,6 @@
   "description": "Shows a new Sketchplanation each day on the new tab page.",
   "homepage_url": "https://sketchplanations.com",
   "author": "Jonathan Hey",
-  "developer": {
-    "name": "Sketchplanations",
-    "url": "https://sketchplanations.com"
-  },
-  "support_url": "https://sketchplanations.com/browser-extension",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
