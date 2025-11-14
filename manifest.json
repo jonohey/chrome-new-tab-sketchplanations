@@ -3,7 +3,7 @@
   "name": "Sketchplanations New Tab",
   "version": "1.0.0",
   "version_name": "1.0.0",
-  "description": "Shows a new Sketchplanation each day on the new tab page.",
+  "description": "Shows a Sketchplanation on opening a new tab.",
   "homepage_url": "https://sketchplanations.com",
   "author": "Jonathan Hey",
   "chrome_url_overrides": {
@@ -18,7 +18,7 @@
   "permissions": ["storage"],
   "host_permissions": [
     "https://sketchplanations.com/*",
-    "https://www.google.com/*"
+    "https://www.google.com/generate_204"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://sketchplanations.com https://www.google.com"
